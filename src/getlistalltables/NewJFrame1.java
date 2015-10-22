@@ -11,7 +11,6 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -32,16 +31,38 @@ public class NewJFrame1 extends javax.swing.JFrame {
     private static final long serialVersionUID = 417803000544591875L;
 
     public List<String> tableName = new ArrayList<String>();
-    public List<String> columnName = new ArrayList<String>();
-    public List<String> type = new ArrayList<String>();
-    public List<Integer> sizeType = new ArrayList<Integer>();
     public List<Columns> columns = new ArrayList<>();
+    public Connection conn = null;
 
     /**
      * Creates new form NewJFrame1
      */
     public NewJFrame1() {
         initComponents();
+    }
+
+    public void connectionDB() {
+        NewJFrame frame = new NewJFrame();
+        try {
+            String driver = "com.microsoft.sqlserver.jdbc.SQLServerDriver";
+            Class.forName(driver);
+
+            // Create a connection to the database
+            String url = "jdbc:sqlserver://" + frame.txtServerName.getText() + ";databaseName=" + frame.txtSchema.getText();
+
+            conn = DriverManager.getConnection(url, frame.txtUserName.getText(), frame.txtPassword.getText());
+
+            System.out.println("Successfully Connected to the database!");
+
+            infoBox("Successfully Connected to the database!", "Successfull");
+
+        } catch (ClassNotFoundException e) {
+
+            System.out.println("Could not find the database driver " + e.getMessage());
+        } catch (SQLException e) {
+
+            System.out.println("Could not connect to the database " + e.getMessage());
+        }
     }
 
     /**
@@ -108,84 +129,15 @@ public class NewJFrame1 extends javax.swing.JFrame {
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
         try {
-//            File file = new File("C:\\convert.psql");
-//            if (!file.exists()) {
-//                PrintWriter writer = new PrintWriter("C:\\convert.psql", "UTF-8");
-//            }
 
-            File file = new File("C:\\convert.psql");
+            File file = new File("C:\\convert.sql");
             if (!file.exists()) {
                 file.createNewFile();
             }
 
             FileWriter fw = new FileWriter(file.getAbsoluteFile());
             BufferedWriter bw = new BufferedWriter(fw);
-
-//            System.out.println("jtree:"+jTree1.getRowCount());
-//            
-//            StringBuilder builder = new StringBuilder();
-//            for (int i = 0; i < jTree1.getRowCount()-1; i++) {
-//                
-//                builder.append(jTree1.getModel().getChild(jTree1.getModel().getRoot(), i));
-//                for (int j = 0; j < jTree1.getModel().getChildCount(jTree1.getModel().getChild(jTree1.getModel().getRoot(), i)); j++) {
-//                    
-//                    System.out.println("j"+j);
-//                }
-//            }
             StringBuilder builder = new StringBuilder();
-
-//            for (int i = 0; i < tableName.size(); i++) {
-//                String get = tableName.get(i);
-//                builder.append("CREATE TABLE ");
-//                builder.append(get);
-//                builder.append(" ( \n");
-//                for (int j = 0; j < columnName.size(); j++) {
-//                    String get1 = columnName.get(j);
-//                    builder.append(get1).append(" ");
-//                    if (get1.equals("id")) {
-//                        builder.append("serial");
-//                        builder.append(" ");
-//                        builder.append(" NOT NULL \n");
-//                    } else {
-//                        if (type.get(j).equals("nvarchar")) {
-//                            builder.append("character varying ").append("(");
-//                            builder.append(sizeType.get(j)).append(")");
-//                        } else if (type.get(j).equals("int")) {
-//                            builder.append("integer ");
-//                        } else if (type.get(j).equals("datetime")) {
-//                            builder.append("timestamp without time zone ");
-//                        } else if (type.get(j).equals("bit")) {
-//                            builder.append("boolean DEFAULT true ");
-//                        } else if (type.get(j).equals("date")) {
-//                            builder.append("date ");
-//                        }
-//                        //System.out.println("type:"+type.get(j));
-//                    }
-//                    builder.append(",\n");
-//                }
-//                builder.append(");\n");
-//            }
-            Connection conn = null;
-            NewJFrame frame = new NewJFrame();
-            try {
-                String driver = "com.microsoft.sqlserver.jdbc.SQLServerDriver";
-                Class.forName(driver);
-
-                // Create a connection to the database
-                String url = "jdbc:sqlserver://" + frame.txtServerName.getText() + ";databaseName=" + frame.txtSchema.getText();
-
-                conn = DriverManager.getConnection(url, frame.txtUserName.getText(), frame.txtPassword.getText());
-
-                System.out.println("Successfully Connected to the database!");
-
-                //infoBox("Successfully Connected to the database!", "Successfull");
-            } catch (ClassNotFoundException e) {
-
-                System.out.println("Could not find the database driver " + e.getMessage());
-            } catch (SQLException e) {
-
-                System.out.println("Could not connect to the database " + e.getMessage());
-            }
 
             String id = "";
             for (int i = 0; i < tableName.size(); i++) {
@@ -226,7 +178,6 @@ public class NewJFrame1 extends javax.swing.JFrame {
                             } else if (get1.getColumnType().equals("time")) {
                                 builder.append("time without time zone ");
                             }
-                            //System.out.println("columnName:"+get1.getColumnName()+" - "+"type:"+get1.getColumnType());
                         }
 
                         builder.append(",").append("\n");
@@ -242,11 +193,9 @@ public class NewJFrame1 extends javax.swing.JFrame {
             bw.write(builder.toString());
             bw.close();
 
-            //NewJFrame2 frame2 = new NewJFrame2();
             infoBox("Created file!", "Successfull");
-            //frame2.setVisible(true);
 
-            File fileQuery = new File("C:\\insert.psql");
+            File fileQuery = new File("C:\\insert.sql");
             if (!fileQuery.exists()) {
                 fileQuery.createNewFile();
             }
@@ -256,28 +205,78 @@ public class NewJFrame1 extends javax.swing.JFrame {
 
             StringBuilder insertBuilder = new StringBuilder();
 
+//            for (int i = 0; i < tableName.size(); i++) {
+//                String get = tableName.get(i);
+//                insertBuilder.append("INSERT INTO ");
+//                insertBuilder.append(get).append("(");
+//
+//                for (int j = 0; j < columns.size(); j++) {
+//                    Columns get1 = columns.get(j);
+//                    if (get.equals(get1.getTable())) {
+//                        insertBuilder.append(get1.getColumnName());
+//                        if (j == columns.size() - 1) {
+//                            insertBuilder.append(")");
+//                        } else {
+//                            insertBuilder.append(",");
+//                        }
+//
+//                    }
+//                }
+////                System.out.println("string:"+insertBuilder.lastIndexOf(","));
+//                insertBuilder.replace(insertBuilder.lastIndexOf(","), insertBuilder.lastIndexOf(",") + 1, "");
+//
+//                //System.out.println("string:"+insertBuilder.length());
+//                insertBuilder.append(")").append("\n").append(" VALUES ( \n");
+//
+//            }
+            connectionDB();
+
+            Statement stm = conn.createStatement();
+
             for (int i = 0; i < tableName.size(); i++) {
                 String get = tableName.get(i);
-                insertBuilder.append("INSERT INTO ");
-                insertBuilder.append(get).append("(");
-
-                for (int j = 0; j < columns.size(); j++) {
-                    Columns get1 = columns.get(j);
-                    if (get.equals(get1.getTable())) {
-                        insertBuilder.append(get1.getColumnName());
-                        if (j == columns.size() - 1) {
-                            insertBuilder.append(")");
-                        } else {
+                ResultSet rst = stm.executeQuery("Select * from " + get);
+                while (rst.next()) {
+                    insertBuilder.append("\n INSERT INTO ");
+                    insertBuilder.append(get).append("(");
+                    for (int j = 0; j < columns.size(); j++) {
+                        Columns get1 = columns.get(j);
+                        if (get.equals(get1.getTable())) {
+                            insertBuilder.append(get1.getColumnName()).append(",");
+                        }
+                    }
+                    insertBuilder.replace(insertBuilder.lastIndexOf(","), insertBuilder.lastIndexOf(",") + 1, "");
+                    insertBuilder.append(")").append(" VALUES ( ");
+                    for (int j = 0; j < columns.size(); j++) {
+                        Columns column = columns.get(j);
+                        if (get.equals(column.getTable())) {
+                            if (column.getColumnName().equals("id")) {
+                                insertBuilder.append(rst.getInt(column.getColumnName()));
+                            } else if (column.getColumnType().equals("int")) {
+                                if (rst.getInt(column.getColumnName()) == 0) {
+                                    insertBuilder.append("null");
+                                } else {
+                                    insertBuilder.append(rst.getInt(column.getColumnName()));
+                                }
+                            } else if (column.getColumnType().equals("nvarchar") || column.getColumnType().equals("datetime") || column.getColumnType().equals("date") || column.getColumnType().equals("time")) {
+                                if (rst.getString(column.getColumnName()) == null) {
+                                    insertBuilder.append("null");
+                                } else {
+                                    insertBuilder.append("'").append(rst.getString(column.getColumnName())).append("'");
+                                }
+                            } else if (column.getColumnType().equals("bit")) {
+                                insertBuilder.append(rst.getBoolean(column.getColumnName()));
+                            } else if (column.getColumnType().equals("decimal")) {
+                                insertBuilder.append(rst.getBigDecimal(column.getColumnName()));
+                            } else if (column.getColumnType().equals("image")) {
+                                insertBuilder.append(rst.getBlob(column.getColumnName()));
+                            }
                             insertBuilder.append(",");
                         }
-
                     }
+                    insertBuilder.replace(insertBuilder.lastIndexOf(","), insertBuilder.lastIndexOf(",") + 1, "");
+                    insertBuilder.append(");").append("\n");
                 }
-//                System.out.println("string:"+insertBuilder.lastIndexOf(","));
-                insertBuilder.replace(insertBuilder.lastIndexOf(","), insertBuilder.lastIndexOf(",") + 1, "");
-
-                //System.out.println("string:"+insertBuilder.length());
-                insertBuilder.append(")").append("\n").append(" VALUES ( \n");
 
             }
 
@@ -289,6 +288,8 @@ public class NewJFrame1 extends javax.swing.JFrame {
         } catch (UnsupportedEncodingException ex) {
             Logger.getLogger(NewJFrame1.class.getName()).log(Level.SEVERE, null, ex);
         } catch (IOException ex) {
+            Logger.getLogger(NewJFrame1.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (SQLException ex) {
             Logger.getLogger(NewJFrame1.class.getName()).log(Level.SEVERE, null, ex);
         }
     }//GEN-LAST:event_jButton1ActionPerformed
