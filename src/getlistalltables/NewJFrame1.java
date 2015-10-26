@@ -205,30 +205,7 @@ public class NewJFrame1 extends javax.swing.JFrame {
 
             StringBuilder insertBuilder = new StringBuilder();
 
-//            for (int i = 0; i < tableName.size(); i++) {
-//                String get = tableName.get(i);
-//                insertBuilder.append("INSERT INTO ");
-//                insertBuilder.append(get).append("(");
-//
-//                for (int j = 0; j < columns.size(); j++) {
-//                    Columns get1 = columns.get(j);
-//                    if (get.equals(get1.getTable())) {
-//                        insertBuilder.append(get1.getColumnName());
-//                        if (j == columns.size() - 1) {
-//                            insertBuilder.append(")");
-//                        } else {
-//                            insertBuilder.append(",");
-//                        }
-//
-//                    }
-//                }
-////                System.out.println("string:"+insertBuilder.lastIndexOf(","));
-//                insertBuilder.replace(insertBuilder.lastIndexOf(","), insertBuilder.lastIndexOf(",") + 1, "");
-//
-//                //System.out.println("string:"+insertBuilder.length());
-//                insertBuilder.append(")").append("\n").append(" VALUES ( \n");
-//
-//            }
+
             connectionDB();
 
             Statement stm = conn.createStatement();
